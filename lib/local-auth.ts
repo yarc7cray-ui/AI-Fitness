@@ -31,7 +31,10 @@ class LocalAuth {
   private seedDemoUsers() {
     if (typeof window === 'undefined') return // SSR check
 
-    const existingUsers = this.getAllUsers()
+    // Direct localStorage access to avoid circular dependency
+    const existingUsersString = localStorage.getItem(this.DEMO_USERS_KEY)
+    const existingUsers = existingUsersString ? JSON.parse(existingUsersString) : []
+
     if (existingUsers.length === 0) {
       const demoUsers = [
         {
