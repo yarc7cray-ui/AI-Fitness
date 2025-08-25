@@ -13,17 +13,20 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Bell, Settings, Flame, LogOut, User } from "lucide-react"
 import { useEffect, useState } from "react"
-import { useSession, signOut } from "next-auth/react"
+import { useAuth } from "@/components/local-auth-provider"
 import { UserStore, type UserProfile } from "@/lib/user-store"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
 
 export function DashboardHeader() {
-  const { data: session } = useSession()
-  const [user, setUser] = useState<UserProfile | null>(null)
+  const { user, signOut } = useAuth()
+  const router = useRouter()
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [streak, setStreak] = useState(0)
 
   useEffect(() => {
     const userData = UserStore.getUser()
-    setUser(userData)
+    setUserProfile(userData)
     
     // Calculate streak (simplified - in real app would track actual workout completions)
     if (userData) {
@@ -39,7 +42,8 @@ export function DashboardHeader() {
   }
 
   const handleSignOut = () => {
-    signOut({ callbackUrl: '/' })
+    signOut()
+    router.push('/')
   }
 
   return (
@@ -61,17 +65,19 @@ export function DashboardHeader() {
               <Bell className="h-4 w-4" />
               <span className="absolute -top-1 -right-1 h-2 w-2 bg-accent rounded-full" />
             </Button>
-            <Button variant="ghost" size="sm">
-              <Settings className="h-4 w-4" />
-            </Button>
+            <Link href="/settings">
+              <Button variant="ghost" size="sm">
+                <Settings className="h-4 w-4" />
+              </Button>
+            </Link>
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={session?.user?.image || "/placeholder.svg?height=32&width=32"} />
+                    <AvatarImage src="/placeholder.svg?height=32&width=32" />
                     <AvatarFallback className="font-sans text-xs">
-                      {session?.user?.name ? getInitials(session.user.name) : (user ? getInitials(user.name) : 'U')}
+                      {user ? getInitials(user.name) : (userProfile ? getInitials(userProfile.name) : 'U')}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
@@ -80,21 +86,25 @@ export function DashboardHeader() {
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">
-                      {session?.user?.name || user?.name || 'User'}
+                      {user?.name || userProfile?.name || 'User'}
                     </p>
                     <p className="text-xs leading-none text-muted-foreground">
-                      {session?.user?.email || 'user@example.com'}
+                      {user?.email || 'user@example.com'}
                     </p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
+                <DropdownMenuItem asChild>
+                  <Link href="/profile">
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
+                <DropdownMenuItem asChild>
+                  <Link href="/settings">
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Settings</span>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut}>
