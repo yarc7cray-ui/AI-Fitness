@@ -1,4 +1,4 @@
-import { WorkoutExecution } from "@/components/workout-execution"
+import { EnhancedWorkoutExecution } from "@/components/enhanced-workout-execution"
 
 interface WorkoutPageProps {
   params: {
@@ -9,7 +9,7 @@ interface WorkoutPageProps {
 export default function WorkoutPage({ params }: WorkoutPageProps) {
   return (
     <div className="min-h-screen bg-background">
-      <WorkoutExecution workoutId={params.id} />
+      <EnhancedWorkoutExecution templateId={params.id} />
     </div>
   )
 }
