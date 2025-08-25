@@ -67,6 +67,7 @@ class LocalAuth {
 
   getCurrentUser(): User | null {
     if (typeof window === 'undefined') return null
+    this.ensureInitialized()
     const user = localStorage.getItem(this.USER_KEY)
     return user ? JSON.parse(user) : null
   }
@@ -80,9 +81,12 @@ class LocalAuth {
   }
 
   async signIn(email: string, password: string): Promise<{ success: boolean; user?: User; error?: string }> {
+    if (typeof window === 'undefined') return { success: false, error: 'Not available on server' }
+    this.ensureInitialized()
+
     const users = this.getAllUsers()
     const user = users.find((u: any) => u.email === email && u.password === password)
-    
+
     if (!user) {
       return { success: false, error: 'Invalid email or password' }
     }
@@ -100,9 +104,12 @@ class LocalAuth {
   }
 
   async signUp(email: string, password: string, name: string): Promise<{ success: boolean; user?: User; error?: string }> {
+    if (typeof window === 'undefined') return { success: false, error: 'Not available on server' }
+    this.ensureInitialized()
+
     const users = this.getAllUsers()
     const existingUser = users.find((u: any) => u.email === email)
-    
+
     if (existingUser) {
       return { success: false, error: 'User already exists' }
     }
@@ -132,15 +139,19 @@ class LocalAuth {
   }
 
   signOut(): void {
+    if (typeof window === 'undefined') return
     localStorage.removeItem(this.USER_KEY)
   }
 
   updateUserOnboarding(completed: boolean): void {
+    if (typeof window === 'undefined') return
+    this.ensureInitialized()
+
     const user = this.getCurrentUser()
     if (user) {
       user.onboardingCompleted = completed
       localStorage.setItem(this.USER_KEY, JSON.stringify(user))
-      
+
       // Also update in demo users
       const users = this.getAllUsers()
       const userIndex = users.findIndex((u: any) => u.id === user.id)
@@ -152,11 +163,14 @@ class LocalAuth {
   }
 
   updateUser(updates: Partial<User>): void {
+    if (typeof window === 'undefined') return
+    this.ensureInitialized()
+
     const user = this.getCurrentUser()
     if (user) {
       const updatedUser = { ...user, ...updates }
       localStorage.setItem(this.USER_KEY, JSON.stringify(updatedUser))
-      
+
       // Also update in demo users
       const users = this.getAllUsers()
       const userIndex = users.findIndex((u: any) => u.id === user.id)
