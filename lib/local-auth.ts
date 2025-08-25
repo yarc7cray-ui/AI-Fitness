@@ -57,11 +57,13 @@ class LocalAuth {
 
   private getAllUsers() {
     if (typeof window === 'undefined') return []
+    this.ensureInitialized()
     const users = localStorage.getItem(this.DEMO_USERS_KEY)
     return users ? JSON.parse(users) : []
   }
 
   private saveAllUsers(users: any[]) {
+    if (typeof window === 'undefined') return
     localStorage.setItem(this.DEMO_USERS_KEY, JSON.stringify(users))
   }
 
