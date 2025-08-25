@@ -1,6 +1,8 @@
 "use client"
 
 import { useState } from "react"
+import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -9,6 +11,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ArrowLeft, ArrowRight, Target, Dumbbell, Home, Calendar } from "lucide-react"
 import Link from "next/link"
+import { UserStore, WorkoutGenerator, NutritionGenerator, type OnboardingData } from "@/lib/user-store"
 
 const steps = [
   { id: "goals", title: "Your Goals", icon: Target },
@@ -18,8 +21,11 @@ const steps = [
 ]
 
 export function OnboardingFlow() {
+  const { data: session, update } = useSession()
+  const router = useRouter()
   const [currentStep, setCurrentStep] = useState(0)
-  const [formData, setFormData] = useState({
+  const [error, setError] = useState<string | null>(null)
+  const [formData, setFormData] = useState<OnboardingData>({
     goal: "",
     height: "",
     weight: "",
@@ -28,13 +34,62 @@ export function OnboardingFlow() {
     equipment: [],
     daysPerWeek: "",
   })
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1)
     } else {
-      // Complete onboarding - redirect to dashboard
-      window.location.href = "/dashboard"
+      // Complete onboarding - save data and generate plans
+      await completeOnboarding()
+    }
+  }
+
+  const completeOnboarding = async () => {
+    if (!session?.user?.id) {
+      router.push('/auth/signin')
+      return
+    }
+    
+    setIsSubmitting(true)
+    
+    try {
+      // Create user profile with onboarding data
+      const user = UserStore.createUser(formData, session.user.name || 'Fitness Enthusiast')
+      
+      // Generate personalized workout and nutrition plans
+      const workoutPlan = WorkoutGenerator.generatePersonalizedWorkout(user)
+      const nutritionPlan = NutritionGenerator.generatePersonalizedNutrition(user)
+      
+      // Save plans to localStorage (can be upgraded to database later)
+      localStorage.setItem('current-workout-plan', JSON.stringify(workoutPlan))
+      localStorage.setItem('current-nutrition-plan', JSON.stringify(nutritionPlan))
+      
+      // Update onboarding status in auth system
+      const response = await fetch('/api/auth/onboarding', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: session.user.id, completed: true })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update onboarding status')
+      }
+      
+      // Update session to reflect onboarding completion
+      await update()
+      
+      // Add a small delay to ensure session is fully updated
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      // Redirect to dashboard
+      router.push('/dashboard')
+    } catch (error) {
+      console.error('Failed to complete onboarding:', error)
+      // Show error message instead of redirecting
+      setError('Failed to complete setup. Please try again.')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -44,7 +99,7 @@ export function OnboardingFlow() {
     }
   }
 
-  const updateFormData = (field: string, value: any) => {
+  const updateFormData = (field: string, value: string | string[]) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
@@ -241,14 +296,28 @@ export function OnboardingFlow() {
         </CardContent>
       </Card>
 
+      {/* Error Message */}
+      {error && (
+        <div className="mt-4 p-4 bg-destructive/10 text-destructive rounded-lg">
+          <p className="text-sm font-medium">{error}</p>
+        </div>
+      )}
+
       {/* Navigation */}
       <div className="mt-8 flex items-center justify-between">
         <Button variant="outline" onClick={handleBack} disabled={currentStep === 0}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back
         </Button>
-        <Button onClick={handleNext} className="gradient-primary text-white hover:opacity-90">
-          {currentStep === steps.length - 1 ? "Complete Setup" : "Next"}
+        <Button 
+          onClick={() => {
+            setError(null) // Clear any previous errors
+            handleNext()
+          }} 
+          disabled={isSubmitting}
+          className="gradient-primary text-white hover:opacity-90 disabled:opacity-50"
+        >
+          {isSubmitting ? "Creating Your Plan..." : currentStep === steps.length - 1 ? "Complete Setup" : "Next"}
           <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </div>

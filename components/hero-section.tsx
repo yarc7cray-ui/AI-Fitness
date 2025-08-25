@@ -1,8 +1,13 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Play } from "lucide-react"
+import { useSession } from "next-auth/react"
 import Link from "next/link"
 
 export function HeroSection() {
+  const { data: session, status } = useSession()
+  
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-background via-card to-muted">
       <div className="absolute inset-0 bg-grid-pattern opacity-5" />
@@ -17,12 +22,32 @@ export function HeroSection() {
             Everything you need to reach your goals, completely free.
           </p>
           <div className="mt-10 flex items-center justify-center gap-4">
-            <Link href="/onboarding">
-              <Button size="lg" className="gradient-primary text-white hover:opacity-90">
-                Start Free Today
-                <ArrowRight className="ml-2 h-4 w-4" />
+            {status === "loading" ? (
+              <Button size="lg" disabled className="gradient-primary text-white">
+                Loading...
               </Button>
-            </Link>
+            ) : session ? (
+              <Link href={(session.user as any)?.onboardingCompleted ? "/dashboard" : "/onboarding"}>
+                <Button size="lg" className="gradient-primary text-white hover:opacity-90">
+                  {(session.user as any)?.onboardingCompleted ? "Go to Dashboard" : "Complete Setup"}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            ) : (
+              <>
+                <Link href="/auth/signup">
+                  <Button size="lg" className="gradient-primary text-white hover:opacity-90">
+                    Start Free Today
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+                <Link href="/auth/signin">
+                  <Button variant="outline" size="lg" className="bg-transparent">
+                    Sign In
+                  </Button>
+                </Link>
+              </>
+            )}
             <Button variant="outline" size="lg" className="group bg-transparent">
               <Play className="mr-2 h-4 w-4 group-hover:text-primary" />
               Watch Demo
