@@ -14,13 +14,23 @@ export interface AuthState {
 class LocalAuth {
   private readonly USER_KEY = 'fitness_app_user'
   private readonly DEMO_USERS_KEY = 'fitness_app_demo_users'
+  private isInitialized = false
 
   constructor() {
-    // Seed demo users if not exists
+    // Don't initialize during SSR
+  }
+
+  private ensureInitialized() {
+    if (typeof window === 'undefined') return // SSR check
+    if (this.isInitialized) return
+
     this.seedDemoUsers()
+    this.isInitialized = true
   }
 
   private seedDemoUsers() {
+    if (typeof window === 'undefined') return // SSR check
+
     const existingUsers = this.getAllUsers()
     if (existingUsers.length === 0) {
       const demoUsers = [
@@ -33,7 +43,7 @@ class LocalAuth {
           createdAt: new Date().toISOString()
         },
         {
-          id: 'demo_2', 
+          id: 'demo_2',
           name: 'John Doe',
           email: 'john@example.com',
           password: 'password123',
