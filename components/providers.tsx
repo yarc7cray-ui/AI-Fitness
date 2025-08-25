@@ -1,7 +1,8 @@
 "use client"
 
-import { SessionProvider } from "next-auth/react"
 import { ReactNode } from "react"
+import { LocalAuthProvider } from "@/components/local-auth-provider"
+import { ThemeProvider } from "@/components/theme-provider"
 
 interface ProvidersProps {
   children: ReactNode
@@ -9,8 +10,15 @@ interface ProvidersProps {
 
 export function Providers({ children }: ProvidersProps) {
   return (
-    <SessionProvider>
-      {children}
-    </SessionProvider>
+    <LocalAuthProvider>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="system"
+        enableSystem
+        disableTransitionOnChange
+      >
+        {children}
+      </ThemeProvider>
+    </LocalAuthProvider>
   )
 }
