@@ -1,4 +1,8 @@
 import { PrismaClient } from '@prisma/client'
+import initSentry from '@/lib/sentry'
+
+// initialize Sentry early on server startup (optional)
+initSentry()
 
 declare global {
   // eslint-disable-next-line no-var
