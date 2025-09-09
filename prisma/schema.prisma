@@ -38,6 +38,9 @@ model WorkoutSession {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // relation to GuestProfile via ownerKey (GuestProfile.ownerKey is unique)
+  guestProfile GuestProfile? @relation(fields: [ownerKey], references: [ownerKey])
+
   @@index([ownerKey, date])
 }
 
@@ -52,6 +55,9 @@ model MealLog {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // relation to GuestProfile via ownerKey
+  guestProfile GuestProfile? @relation(fields: [ownerKey], references: [ownerKey])
+
   @@index([ownerKey, date])
 }
 
@@ -63,6 +69,9 @@ model Achievement {
   metadata  Json?
   achievedAt DateTime @default(now())
   createdAt DateTime @default(now())
+
+  // relation to GuestProfile via ownerKey
+  guestProfile GuestProfile? @relation(fields: [ownerKey], references: [ownerKey])
 
   @@index([ownerKey, achievedAt])
 }
@@ -77,6 +86,9 @@ model CommunityPost {
   likes     Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // relation to GuestProfile via ownerKey
+  guestProfile GuestProfile? @relation(fields: [ownerKey], references: [ownerKey])
 
   @@index([ownerKey, createdAt])
 }
