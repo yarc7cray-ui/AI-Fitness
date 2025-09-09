@@ -2,11 +2,11 @@
 
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Play } from "lucide-react"
-import { useSession } from "next-auth/react"
+import { useAuth } from "@/components/local-auth-provider"
 import Link from "next/link"
 
 export function HeroSection() {
-  const { data: session, status } = useSession()
+  const { isAuthenticated, user, loading } = useAuth()
   
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-background via-card to-muted">
@@ -22,14 +22,14 @@ export function HeroSection() {
             Everything you need to reach your goals, completely free.
           </p>
           <div className="mt-10 flex items-center justify-center gap-4">
-            {status === "loading" ? (
+            {loading ? (
               <Button size="lg" disabled className="gradient-primary text-white">
                 Loading...
               </Button>
-            ) : session ? (
-              <Link href={(session.user as any)?.onboardingCompleted ? "/dashboard" : "/onboarding"}>
+            ) : isAuthenticated && user ? (
+              <Link href={user.onboardingCompleted ? "/dashboard" : "/onboarding"}>
                 <Button size="lg" className="gradient-primary text-white hover:opacity-90">
-                  {(session.user as any)?.onboardingCompleted ? "Go to Dashboard" : "Complete Setup"}
+                  {user.onboardingCompleted ? "Go to Dashboard" : "Complete Setup"}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>

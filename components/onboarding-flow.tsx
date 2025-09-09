@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useSession } from "next-auth/react"
+import { useAuth } from "@/components/local-auth-provider"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -21,7 +21,7 @@ const steps = [
 ]
 
 export function OnboardingFlow() {
-  const { data: session, update } = useSession()
+  const { user, updateUserOnboarding } = useAuth()
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState(0)
   const [error, setError] = useState<string | null>(null)
@@ -46,7 +46,7 @@ export function OnboardingFlow() {
   }
 
   const completeOnboarding = async () => {
-    if (!session?.user?.id) {
+    if (!user?.id) {
       router.push('/auth/signin')
       return
     }
@@ -55,38 +55,26 @@ export function OnboardingFlow() {
     
     try {
       // Create user profile with onboarding data
-      const user = UserStore.createUser(formData, session.user.name || 'Fitness Enthusiast')
+      const userProfile = UserStore.createUser(formData, user.name || 'Fitness Enthusiast')
       
       // Generate personalized workout and nutrition plans
-      const workoutPlan = WorkoutGenerator.generatePersonalizedWorkout(user)
-      const nutritionPlan = NutritionGenerator.generatePersonalizedNutrition(user)
+      const workoutPlan = WorkoutGenerator.generatePersonalizedWorkout(userProfile)
+      const nutritionPlan = NutritionGenerator.generatePersonalizedNutrition(userProfile)
       
-      // Save plans to localStorage (can be upgraded to database later)
+      // Save plans to localStorage
       localStorage.setItem('current-workout-plan', JSON.stringify(workoutPlan))
       localStorage.setItem('current-nutrition-plan', JSON.stringify(nutritionPlan))
       
-      // Update onboarding status in auth system
-      const response = await fetch('/api/auth/onboarding', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: session.user.id, completed: true })
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to update onboarding status')
-      }
+      // Update onboarding status in local auth
+      updateUserOnboarding(true)
       
-      // Update session to reflect onboarding completion
-      await update()
-      
-      // Add a small delay to ensure session is fully updated
+      // Add a small delay for better UX
       await new Promise(resolve => setTimeout(resolve, 1000))
       
       // Redirect to dashboard
       router.push('/dashboard')
     } catch (error) {
       console.error('Failed to complete onboarding:', error)
-      // Show error message instead of redirecting
       setError('Failed to complete setup. Please try again.')
     } finally {
       setIsSubmitting(false)

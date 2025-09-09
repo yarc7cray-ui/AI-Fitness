@@ -1,0 +1,13 @@
+rules:
+  - id: insecure-random
+    patterns:
+      - pattern-either:
+          - pattern: "Math.random()"
+    message: "Avoid Math.random for security-sensitive randomness; use crypto.randomUUID or secure RNG."
+    severity: WARNING
+
+  - id: possible-sql-injection
+    patterns:
+      - pattern: "execute($X)"
+    message: "Review SQL execution for injection risks. Use parameterized queries via Prisma."
+    severity: WARNING

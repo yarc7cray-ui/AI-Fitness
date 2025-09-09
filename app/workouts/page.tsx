@@ -1,6 +1,5 @@
 import { WorkoutHeader } from "@/components/workouts/workout-header"
-import { WorkoutFilters } from "@/components/workouts/workout-filters"
-import { ExerciseGrid } from "@/components/workouts/exercise-grid"
+import { WorkoutTemplates } from "@/components/workouts/workout-templates"
 import { AIWorkoutSuggestions } from "@/components/workouts/ai-workout-suggestions"
 
 export default function WorkoutsPage() {
@@ -12,12 +11,11 @@ export default function WorkoutsPage() {
           {/* Sidebar */}
           <div className="lg:col-span-1 space-y-6">
             <AIWorkoutSuggestions />
-            <WorkoutFilters />
           </div>
 
           {/* Main Content */}
           <div className="lg:col-span-3">
-            <ExerciseGrid />
+            <WorkoutTemplates />
           </div>
         </div>
       </main>
