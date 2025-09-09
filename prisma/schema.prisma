@@ -8,15 +8,15 @@ datasource db {
 }
 
 model GuestProfile {
-  id         String   @id @default(cuid())
-  ownerKey   String   @unique
+  id          String   @id @default(cuid())
+  ownerKey    String   @unique
   displayName String?
-  avatarUrl  String?
-  goals      Json?    // flexible goals object/array
-  prefs      Json?    // user preferences
-  migrated   Boolean  @default(false)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  avatarUrl   String?
+  goals       Json? // flexible goals object/array
+  prefs       Json? // user preferences
+  migrated    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   WorkoutSessions WorkoutSession[]
   MealLogs        MealLog[]
@@ -27,16 +27,16 @@ model GuestProfile {
 }
 
 model WorkoutSession {
-  id        String   @id @default(cuid())
-  ownerKey  String
-  userId    String?  // future-proof real user linking
+  id         String   @id @default(cuid())
+  ownerKey   String
+  userId     String? // future-proof real user linking
   templateId String?
-  date      DateTime @default(now())
-  exercises Json     // array of exercise entries
-  duration  Int?     // seconds
-  notes     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  date       DateTime @default(now())
+  exercises  Json // array of exercise entries
+  duration   Int? // seconds
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   // relation to GuestProfile via ownerKey (GuestProfile.ownerKey is unique)
   guestProfile GuestProfile? @relation(fields: [ownerKey], references: [ownerKey])
@@ -49,8 +49,8 @@ model MealLog {
   ownerKey  String
   userId    String?
   date      DateTime @default(now())
-  items     Json     // [{ foodId, qty, macros }]
-  total     Json?    // total macros/calories
+  items     Json // [{ foodId, qty, macros }]
+  total     Json? // total macros/calories
   notes     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -62,13 +62,13 @@ model MealLog {
 }
 
 model Achievement {
-  id        String   @id @default(cuid())
-  ownerKey  String
-  userId    String?
-  type      String
-  metadata  Json?
+  id         String   @id @default(cuid())
+  ownerKey   String
+  userId     String?
+  type       String
+  metadata   Json?
   achievedAt DateTime @default(now())
-  createdAt DateTime @default(now())
+  createdAt  DateTime @default(now())
 
   // relation to GuestProfile via ownerKey
   guestProfile GuestProfile? @relation(fields: [ownerKey], references: [ownerKey])
@@ -94,11 +94,11 @@ model CommunityPost {
 }
 
 model RateLimit {
-  id        String   @id @default(cuid())
-  key       String   @unique
-  count     Int      @default(0)
+  id        String    @id @default(cuid())
+  key       String    @unique
+  count     Int       @default(0)
   expiresAt DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 
   @@index([key, expiresAt])
 }
