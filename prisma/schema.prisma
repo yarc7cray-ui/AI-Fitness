@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model GuestProfile {
+  id         String   @id @default(cuid())
+  ownerKey   String   @unique
+  displayName String?
+  avatarUrl  String?
+  goals      Json?    // flexible goals object/array
+  prefs      Json?    // user preferences
+  migrated   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  WorkoutSessions WorkoutSession[]
+  MealLogs        MealLog[]
+  Achievements    Achievement[]
+  CommunityPosts  CommunityPost[]
+
+  @@index([ownerKey, createdAt])
+}
+
+model WorkoutSession {
+  id        String   @id @default(cuid())
+  ownerKey  String
+  userId    String?  // future-proof real user linking
+  templateId String?
+  date      DateTime @default(now())
+  exercises Json     // array of exercise entries
+  duration  Int?     // seconds
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerKey, date])
+}
+
+model MealLog {
+  id        String   @id @default(cuid())
+  ownerKey  String
+  userId    String?
+  date      DateTime @default(now())
+  items     Json     // [{ foodId, qty, macros }]
+  total     Json?    // total macros/calories
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerKey, date])
+}
+
+model Achievement {
+  id        String   @id @default(cuid())
+  ownerKey  String
+  userId    String?
+  type      String
+  metadata  Json?
+  achievedAt DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  @@index([ownerKey, achievedAt])
+}
+
+model CommunityPost {
+  id        String   @id @default(cuid())
+  ownerKey  String
+  userId    String?
+  title     String?
+  content   String
+  metadata  Json?
+  likes     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerKey, createdAt])
+}
